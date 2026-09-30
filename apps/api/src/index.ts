@@ -117,6 +117,17 @@ export async function start() {
   await runMigrations();
   await initKv();
 
+  // Fresh deployments get demo content automatically (skips when demo user
+  // already exists). Disable with SEED_ON_BOOT=0.
+  if (process.env.SEED_ON_BOOT !== '0') {
+    try {
+      const { seedIfEmpty } = await import('./db/seed.js');
+      await seedIfEmpty();
+    } catch (err) {
+      console.warn('[api] seed-on-boot skipped:', err instanceof Error ? err.message : err);
+    }
+  }
+
   const app = await buildApp();
 
   // Attach Socket.IO to the raw server and wire chat + bus

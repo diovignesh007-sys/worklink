@@ -52,7 +52,7 @@ function mulberry(seed: number) {
   };
 }
 
-async function main() {
+export async function seedIfEmpty(): Promise<void> {
   await initDb();
   await runMigrations();
   const db = getDb();
@@ -63,7 +63,6 @@ async function main() {
   const existing = await db.selectFrom('users').select('id').where('email', '=', 'demo@worklink.app').executeTakeFirst();
   if (existing) {
     console.log('[seed] database already seeded — skipping (delete .db or drop schema to reseed)');
-    await closeDb();
     return;
   }
 
@@ -231,10 +230,20 @@ async function main() {
 
   console.log('[seed] done: 30 users, 60 jobs, applications/assignments/reviews/chats');
   console.log('[seed] demo login → demo@worklink.app / Worklink1');
-  await closeDb();
 }
 
-main().catch((err) => {
-  console.error('[seed] failed:', err);
-  process.exit(1);
-});
+// When run directly (pnpm db:seed), execute; when imported, export the fn.
+if (process.argv[1] && process.argv[1].replace(/\\/g, '/').endsWith('seed.ts')) {
+  mainWrapper();
+}
+
+async function mainWrapper() {
+  try {
+    await seedIfEmpty();
+    await closeDb();
+    process.exit(0);
+  } catch (err) {
+    console.error('[seed] failed:', err);
+    process.exit(1);
+  }
+}

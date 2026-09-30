@@ -1,0 +1,97 @@
+# Render.com Blueprint — deploys the full WorkLink stack in one click:
+#   https://dashboard.render.com/blueprints → "New Blueprint Instance" → pick this repo.
+# Provisions: Postgres + 2 web services (API, web) + seed job. Redis omitted —
+# the API falls back to an in-memory KV (fine to start; add a Render Redis key
+# REDIS_URL later for multi-instance rate limits/OTP).
+
+databases:
+  - name: worklink-db
+    databaseName: worklink
+    user: worklink
+    plan: free
+    postgresMajorVersion: "16"
+
+services:
+  # ── API (Fastify + embedded fallback OFF; uses managed Postgres) ─────────
+  - type: web
+    name: worklink-api
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: apps/api
+    buildCommand: cd ../.. && corepack pnpm install --no-frozen-lockfile && corepack pnpm --filter @worklink/types build && corepack pnpm --filter @worklink/api build
+    startCommand: node dist/index.js
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: worklink-db
+          property: connectionString
+      - key: WORKLINK_EMBEDDED_DB
+        value: "0"
+      - key: CORS_ORIGIN
+        value: https://worklink-web.onrender.com
+      - key: API_BASE_URL
+        value: https://worklink-api.onrender.com/api/v1
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: OTP_CHANNEL
+        value: console
+      - key: EMAIL_DRIVER
+        value: console
+      - key: STORAGE_DRIVER
+        value: local
+      - key: PAYMENTS_ENABLED
+        value: "0"
+      - key: LOG_LEVEL
+        value: info
+
+  # ── Web (Next.js standalone) ─────────────────────────────────────────────
+  - type: web
+    name: worklink-web
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: apps/web
+    buildCommand: cd ../.. && corepack pnpm install --no-frozen-lockfile && corepack pnpm --filter @worklink/types build && corepack pnpm --filter @worklink/web build
+    startCommand: node .next/standalone/apps/web/server.js
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NEXT_PUBLIC_API_BASE_URL
+        value: https://worklink-api.onrender.com/api/v1
+      # Next needs these at build time for client bundles
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+
+  # ── One-shot seed (runs once per manual trigger; safe: skips if demo user exists) ──
+  - type: job
+    name: worklink-seed
+    runtime: node
+    plan: starter
+    region: oregon
+    rootDir: apps/api
+    buildCommand: cd ../.. && corepack pnpm install --no-frozen-lockfile && corepack pnpm --filter @worklink/types build && corepack pnpm --filter @worklink/api build
+    startCommand: npx tsx src/db/seed.ts
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: worklink-db
+          property: connectionString
+      - key: WORKLINK_EMBEDDED_DB
+        value: "0"
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+
+# envVars keys that differ from the web's default service name: if you rename
+# services above, update CORS_ORIGIN (api) and NEXT_PUBLIC_API_BASE_URL (web).

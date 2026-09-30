@@ -45,10 +45,14 @@ export const sha256 = (s: string): string => createHash('sha256').update(s).dige
 export const REFRESH_COOKIE = 'wl_rt';
 
 export function refreshCookieOpts() {
+  // Cross-site deployments (web on a different domain than the API, e.g.
+  // *.onrender.com) need SameSite=None + Secure; same-site localhost dev
+  // keeps Lax. Override with COOKIE_SAME_SITE=lax|none|strict.
+  const sameSite = (process.env.COOKIE_SAME_SITE ?? (env.isProd ? 'none' : 'lax')) as 'lax' | 'none' | 'strict';
   return {
     httpOnly: true,
-    secure: env.isProd,
-    sameSite: 'lax' as const,
+    secure: env.isProd || sameSite === 'none',
+    sameSite,
     path: '/api/v1/auth',
     maxAge: env.refreshTokenTtlDays * 24 * 3600,
   };

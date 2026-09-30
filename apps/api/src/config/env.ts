@@ -36,7 +36,7 @@ export const env = {
     .map((s) => s.trim())
     .filter(Boolean),
 
-  apiPort: num('API_PORT', 4000),
+  apiPort: num('API_PORT', process.env.PORT ? Number(process.env.PORT) : 4000),
   apiBaseUrl: process.env.API_BASE_URL ?? `http://localhost:${num('API_PORT', 4000)}`,
 
   storageDriver: process.env.STORAGE_DRIVER ?? 'local',
