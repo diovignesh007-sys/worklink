@@ -1,6 +1,6 @@
 # Render.com Blueprint — deploys the full WorkLink stack in one click:
 #   https://dashboard.render.com/blueprints → "New Blueprint Instance" → pick this repo.
-# Provisions: Postgres + 2 web services (API, web) + seed job. Redis omitted —
+# Provisions: Postgres + 2 web services (API, web). Redis omitted —
 # the API falls back to an in-memory KV (fine to start; add a Render Redis key
 # REDIS_URL later for multi-instance rate limits/OTP).
 
@@ -58,7 +58,8 @@ services:
     plan: free
     region: oregon
     rootDir: apps/web
-    buildCommand: cd ../.. && corepack pnpm install --no-frozen-lockfile && corepack pnpm --filter @worklink/types build && corepack pnpm --filter @worklink/web build
+    # output:standalone needs static + public assets copied next to server.js
+    buildCommand: cd ../.. && corepack pnpm install --no-frozen-lockfile && corepack pnpm --filter @worklink/types build && corepack pnpm --filter @worklink/web build && cp -r public .next/standalone/apps/web/public 2>/dev/null; mkdir -p .next/standalone/apps/web/.next && cp -r .next/static .next/standalone/apps/web/.next/static
     startCommand: node .next/standalone/apps/web/server.js
     autoDeploy: true
     envVars:
@@ -70,28 +71,7 @@ services:
       - key: NEXT_TELEMETRY_DISABLED
         value: "1"
 
-  # ── One-shot seed (runs once per manual trigger; safe: skips if demo user exists) ──
-  - type: job
-    name: worklink-seed
-    runtime: node
-    plan: starter
-    region: oregon
-    rootDir: apps/api
-    buildCommand: cd ../.. && corepack pnpm install --no-frozen-lockfile && corepack pnpm --filter @worklink/types build && corepack pnpm --filter @worklink/api build
-    startCommand: npx tsx src/db/seed.ts
-    envVars:
-      - key: NODE_VERSION
-        value: "20"
-      - key: DATABASE_URL
-        fromDatabase:
-          name: worklink-db
-          property: connectionString
-      - key: WORKLINK_EMBEDDED_DB
-        value: "0"
-      - key: JWT_ACCESS_SECRET
-        generateValue: true
-      - key: JWT_REFRESH_SECRET
-        generateValue: true
-
-# envVars keys that differ from the web's default service name: if you rename
-# services above, update CORS_ORIGIN (api) and NEXT_PUBLIC_API_BASE_URL (web).
+# Demo data (30 users, 60 jobs, demo@worklink.app / Worklink1) seeds automatically
+# on first API boot (SEED_ON_BOOT=1 default) — no separate seed job is needed.
+# If you rename services above, update CORS_ORIGIN (api) and
+# NEXT_PUBLIC_API_BASE_URL (web) to match.
