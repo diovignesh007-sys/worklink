@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  // NOTE: no output:'standalone' — it needs symlinks (EPERM on Windows, flaky
+  // on CI) and we serve via `next start` on Render anyway.
   reactStrictMode: true,
   images: {
     remotePatterns: [{ protocol: 'http', hostname: 'localhost' }, { protocol: 'https', hostname: '**' }],
