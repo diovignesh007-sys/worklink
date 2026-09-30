@@ -19,7 +19,7 @@ services:
     plan: free
     region: oregon
     rootDir: apps/api
-    buildCommand: cd ../.. && corepack pnpm install --no-frozen-lockfile && corepack pnpm --filter @worklink/types build && corepack pnpm --filter @worklink/api build
+    buildCommand: npm install -g pnpm@9 --silent && cd ../.. && pnpm install --no-frozen-lockfile && pnpm --filter @worklink/types build && pnpm --filter @worklink/api build
     startCommand: node dist/index.js
     healthCheckPath: /api/v1/health
     autoDeploy: true
@@ -58,9 +58,10 @@ services:
     plan: free
     region: oregon
     rootDir: apps/web
-    # output:standalone needs static + public assets copied next to server.js
-    buildCommand: cd ../.. && corepack pnpm install --no-frozen-lockfile && corepack pnpm --filter @worklink/types build && corepack pnpm --filter @worklink/web build && cp -r public .next/standalone/apps/web/public 2>/dev/null; mkdir -p .next/standalone/apps/web/.next && cp -r .next/static .next/standalone/apps/web/.next/static
-    startCommand: node .next/standalone/apps/web/server.js
+    # Build from the workspace root (pnpm needs the lockfile); `next start`
+    # serves apps/web/.next directly — no standalone-copy pitfalls.
+    buildCommand: npm install -g pnpm@9 --silent && cd ../.. && pnpm install --no-frozen-lockfile && pnpm --filter @worklink/types build && pnpm --filter @worklink/web build
+    startCommand: npx next start -p $PORT
     autoDeploy: true
     envVars:
       - key: NODE_VERSION
