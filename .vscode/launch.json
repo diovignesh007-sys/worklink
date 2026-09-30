@@ -1,0 +1,40 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "API: debug (Nest-style tsx watch + breakpoints)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/api",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["tsx", "src/index.ts"],
+      "skipFiles": ["<node_internals>/**"],
+      "serverReadyAction": {
+        "pattern": "listening on :([0-9]+)",
+        "uriFormat": "http://localhost:%s/docs",
+        "action": "openExternally"
+      },
+      "env": { "LOG_LEVEL": "debug" }
+    },
+    {
+      "name": "Web: Next.js debug",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/web",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["next", "dev", "-p", "3000"],
+      "skipFiles": ["<node_internals>/**"],
+      "serverReadyAction": {
+        "pattern": "ready",
+        "uriFormat": "http://localhost:3000",
+        "action": "openExternally"
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full stack (API + Web)",
+      "configurations": ["API: debug (Nest-style tsx watch + breakpoints)", "Web: Next.js debug"]
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# builds
+dist/
+.next/
+out/
+build/
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+
+# env & secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# databases / caches
+.db/
+data/
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# uploads (local object storage)
+/uploads/
+
+# logs
+logs/
+*.log
+npm-debug.log*
+
+# test artifacts
+coverage/
+playwright-report/
+test-results/
+
+# misc
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+.freebuff/
+
+# dev-server runtime artifacts
+.api-dev.pid
+.web-dev.pid
+.web-dev.log
+.api-dev.log

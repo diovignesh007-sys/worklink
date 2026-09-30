@@ -1,0 +1,46 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "setup: install + seed",
+      "type": "shell",
+      "command": "corepack pnpm install && corepack pnpm --filter @worklink/api db:seed",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "dev:api",
+      "type": "shell",
+      "command": "corepack pnpm --filter @worklink/api dev",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "api" }
+    },
+    {
+      "label": "dev:web",
+      "type": "shell",
+      "command": "corepack pnpm --filter @worklink/web dev",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "web" }
+    },
+    {
+      "label": "dev (API + Web)",
+      "dependsOn": ["dev:api", "dev:web"],
+      "problemMatcher": [],
+      "group": { "kind": "build", "isDefault": true }
+    },
+    {
+      "label": "test: api",
+      "type": "shell",
+      "command": "corepack pnpm --filter @worklink/api test",
+      "problemMatcher": []
+    },
+    {
+      "label": "typecheck: all",
+      "type": "shell",
+      "command": "corepack pnpm --filter @worklink/types typecheck && corepack pnpm --filter @worklink/api typecheck && corepack pnpm --filter @worklink/web typecheck",
+      "problemMatcher": []
+    }
+  ]
+}

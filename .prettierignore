@@ -1,0 +1,11 @@
+node_modules
+dist
+.next
+out
+coverage
+playwright-report
+test-results
+package-lock.json
+pnpm-lock.yaml
+.db
+uploads

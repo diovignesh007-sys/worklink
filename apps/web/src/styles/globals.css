@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design tokens (§6) ─────────────────────────────────────────────────── */
+:root {
+  --bg: 250 250 249;
+  --card: 255 255 255;
+  --text: 23 23 28;
+  --subtle: 110 110 125;
+  --line: 228 228 233;
+  --primary: 245 124 0; /* WorkLink orange */
+  --on-primary: 255 255 255;
+  --accent: 3 105 161;
+  --danger: 220 38 38;
+  --success: 22 163 74;
+}
+
+.dark {
+  --bg: 12 12 16;
+  --card: 24 24 30;
+  --text: 240 240 245;
+  --subtle: 150 150 165;
+  --line: 44 44 54;
+  --primary: 251 146 60;
+  --on-primary: 20 10 0;
+  --accent: 56 189 248;
+  --danger: 248 113 113;
+  --success: 74 222 128;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  @apply bg-bg text-text antialiased;
+  overscroll-behavior-y: none;
+}
+
+/* Reveal animation (IntersectionObserver adds .revealed) */
+.reveal {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+.reveal.revealed {
+  opacity: 1;
+  transform: none;
+}
+
+/* Skeleton shimmer */
+.skeleton {
+  @apply bg-line rounded-xl animate-pulse;
+}
+
+/* Hide scrollbars on horizontal chip rows */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Focus visibility (a11y §6) */
+:focus-visible {
+  outline: 2px solid rgb(var(--primary));
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
